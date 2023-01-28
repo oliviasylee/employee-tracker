@@ -47,11 +47,11 @@ db.connect(function (err) {
 // }
 
 // const viewAllEmployee = () => {
-    // const query = 'SELECT employee.id, first_name, last_name, title, department_name AS department, salary, manager_id AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON department.id = role.department_id';
-    //     db.query(query, (err, rows) => {
-    //         if (err) throw err;
-    //         console.table(rows);
-    //     });
+//     const query = "SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id";
+//     db.query(query, (err, rows) => {
+//         if (err) throw err;
+//         console.table(rows);
+//     });
 // }
 
 // const viewAllRoles = () => {
