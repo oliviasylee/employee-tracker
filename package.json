@@ -1,12 +1,4 @@
 {
-  "dependencies": {
-    "console.table": "^0.10.0",
-    "inquirer": "^8.2.4",
-    "mysql2": "^3.0.1"
-  },
-  "scripts": {
-    "start": "node server.js"
-  },
   "name": "employee-tracker",
   "description": "",
   "version": "1.0.0",
@@ -15,10 +7,21 @@
     "type": "git",
     "url": "git+https://github.com/oliviasylee/employee-tracker.git"
   },
+
   "author": "Olivia Seonyeong Lee",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/oliviasylee/employee-tracker/issues"
   },
-  "homepage": "https://github.com/oliviasylee/employee-tracker#readme"
+  
+  "homepage": "https://github.com/oliviasylee/employee-tracker#readme",
+
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^8.2.4",
+    "mysql2": "^3.0.1"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
 }
