@@ -16,12 +16,11 @@ const db = mysql.createConnection({
 
 db.connect(function (err) {
     if(err) throw err;
-    console.log("MySQL Connected!")
+    console.log('Welcome to the Employee Tracker!')
     menu()
 })
 
 const menu = () => {
-    console.log('Welcome to the Employee Tracker!');
         return inquirer
                 .prompt([
                     {
@@ -34,6 +33,8 @@ const menu = () => {
 ]).then((data) => {
     if(data.startQuestions === 'Add Department'){
         addDept();
+    } else if (data.startQuestions === 'View All Employee') {
+        viewAllEmployee();
     }
 })
 };
@@ -48,9 +49,7 @@ const addDept = () => {
                 message: "What is the name of the department?"
             }
       
-         // deptData {
-        //         department: "service"
-        //      }
+         // deptData { department: "service"}
         ]).then((deptData) => {
             const query = "INSERT INTO department(department_name) VALUES(?)"
             //to execute the SQL query and insert the department name into the database.
@@ -87,13 +86,14 @@ const addDept = () => {
 //     })
 // }
 
-// const viewAllEmployee = () => {
-//     const query = "SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id";
-//     db.query(query, (err, rows) => {
-//         if (err) throw err;
-//         cTable(rows);
-//     });
-// }
+const viewAllEmployee = () => {
+    const query = "SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id";
+    db.query(query, (err, rows) => {
+        if (err) throw err;
+        console.table(rows);
+        menu();
+    });
+}
 
 // const viewAllRoles = () => {
 //     const query = 'SELECT department.id, title, department_name AS department, salary FROM role LEFT JOIN department on role.department_id = department.id';
