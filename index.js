@@ -3,13 +3,17 @@ const mysql = require('mysql2')
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const { default: Choices } = require('inquirer/lib/objects/choices');
- 
+
+require('dotenv').config();
+
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'oslee',
-    password: '',
-    database: 'employee_db'
-})
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: 3306,
+
+});
 
 db.connect(function (err) {
     if(err) throw err;
@@ -30,6 +34,11 @@ db.connect(function (err) {
 //                      }
 // ])
 // };
+
+// Add Employee
+// Add Role 
+// Add Department
+// Update Employee Role
 
 // const addAllEmployees = () => {
 //     inquirer.prompt([
@@ -69,8 +78,3 @@ db.connect(function (err) {
     //     console.table(rows);
     // });
 // }
-
-// Add Employee
-// Add Role 
-// Add Department
-// Update Employee Role
