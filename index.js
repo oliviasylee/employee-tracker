@@ -35,6 +35,10 @@ const menu = () => {
         addDept();
     } else if (data.startQuestions === 'View All Employee') {
         viewAllEmployee();
+    } else if (data.startQuestions === 'View All Roles') {
+        viewAllRoles();
+    } else if (data.startQuestions === 'View All Departments') {
+        viewAllDepts();
     }
 })
 };
@@ -95,18 +99,20 @@ const viewAllEmployee = () => {
     });
 }
 
-// const viewAllRoles = () => {
-//     const query = 'SELECT department.id, title, department_name AS department, salary FROM role LEFT JOIN department on role.department_id = department.id';
-//     db.query(query, (err, rows) => {
-//         if (err) throw err;
-//         cTable(rows);
-//     });
-// }
+const viewAllRoles = () => {
+    const query = 'SELECT department.id, title, department_name AS department, salary FROM role LEFT JOIN department on role.department_id = department.id';
+    db.query(query, (err, rows) => {
+        if (err) throw err;
+        console.table(rows);
+        menu();
+    });
+}
 
-// const viewAllDepts = () => {
-    // const query = 'SELECT id, department_name AS name FROM department ORDER BY name ASC';
-    // db.query(query, (err, rows) => {
-    //     if (err) throw err;
-    //     cTable(rows);
-    // });
-// }
+const viewAllDepts = () => {
+    const query = 'SELECT id, department_name AS name FROM department ORDER BY name ASC';
+    db.query(query, (err, rows) => {
+        if (err) throw err;
+        console.table(rows);
+        menu();
+    });
+}
