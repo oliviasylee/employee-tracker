@@ -15,21 +15,17 @@ const db = mysql.createConnection({
     port: 3306
 });
 
-
-
-figlet("Welcome !\n Employee Tracker", function(err, data) {
+figlet("Welcome ! \n Employee Tracker", function(err, data) {
     if (err) {
         console.log('Something went wrong...');
         console.dir(err);
         return;
     }
     console.log(data)
-});
-
-db.connect(function (err) {
-    if(err) throw err;
-    console.log('Welcome to the Employee Tracker!')
-    menu()
+    db.connect(function (err) {
+        if(err) throw err;
+        menu()
+    });
 });
 
 const menu = () => {
@@ -131,7 +127,6 @@ const addRole = () => {
         .catch(console.error);
 };
 
-
 // Add Role 
 // const addRole = () => {
 //     inquirer.
@@ -151,13 +146,10 @@ const addRole = () => {
 //                 name: 'departmentName',
 //                 message: 'Which department does the role belong to?',
                 // 새로 입력된 디파트먼트 테이블에서 모두 불러와야함. choices에 sql query가 들어갈 수 있나?
-                // function이 들어올 수도 있음? 허? 그럼 viewdept 펑션이 들어와서 
-                // Choices array or a function returning a choices array. If defined as a function, the first parameter will be the current inquirer session answers. Array values can be simple numbers, strings, or objects containing a name (to display in list), a value (to save in the answers hash), and a short (to display after selection) properties. The choices array can also contain a Separator.
                 // 아 여기서 프로미스가 나와야하는구나 viewrole과 함께 해야하는 것 같은데 왜냐면 viewrole의 sql query가 필요하거든
                 // 이 프로미스의 목적이 뭐니? 사용자의 입력을 받아서 새로운 역할을 추가하는 것. 하지만 이것을 하는 동안 view role보는 것임? 
 //                 choices: [ ]
 //             }
-     
         // roleData { title: "customer service", salary: "80000", department: :"Service" }
 //        ]).then((roleData) => {
 //            const query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)"
@@ -171,7 +163,6 @@ const addRole = () => {
 //            }); 
 //            })
 //        };
-
 
 // Add Employee
 // const addEmployee = () => {
