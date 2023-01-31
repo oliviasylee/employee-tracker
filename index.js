@@ -36,13 +36,15 @@ const menu = () => {
                          name: 'startQuestions',
                          pageSize: 6,
                          message: "What would you like to do?",
-                         choices: ['View All Employee', 'Add Employee', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit']
+                         choices: ['View All Employee', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit']
                      }
 ]).then((data) => {
     if(data.startQuestions === 'View All Employee') {
             viewAllEmployee();
         } else if (data.startQuestions === 'Add Employee'){
             addEmployee();
+        } else if (data.startQuestions === 'Update Employee Role') {
+            updateEmployeeRole();    
         } else if (data.startQuestions === 'View All Roles') {
             viewAllRoles();
         } else if (data.startQuestions === 'Add Role') {
@@ -56,76 +58,6 @@ const menu = () => {
             db.end();
         }} 
 )};
-
-// Add Department
-const addDept = () => {
-     inquirer.
-        prompt([
-            {
-                type: 'input',
-                name: 'department',
-                message: "What is the name of the department?"
-            }
-      
-         // deptData { department: "service"}
-        ]).then((deptData) => {
-            const query = "INSERT INTO department(department_name) VALUES(?)"
-            // to execute the SQL query and insert the department name into the database.
-            // first parameter -> SQL query
-            // seconde parameter -> object that contains the department name
-            // third parameter -> callback function
-            db.query(query, deptData.department, (err, result) => {
-                if(err) {
-                    throw(err);
-                        } 
-                console.log(`Added ${deptData.department} to the database`)
-                menu();
-            }); 
-            })
-        };
-
-const addRole = () => {
-    // Use a promise to execute a query to retrieve the list of departments
-    db.promise().query("SELECT id, department_name FROM department")
-        .then(([rows]) => {
-            // Use the results to populate the choices in the inquirer prompt
-            const departmentChoices = rows.map(row => ({
-                name: row.department_name,
-                value: row.id
-            }));
-
-            inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'title',
-                    message: "What is the name of the role?"
-                },
-                {
-                    type: 'input',
-                    name: 'salary',
-                    message: "What is the salary of the role?"
-                },
-                {
-                    type: 'list',
-                    name: 'departmentId',
-                    message: 'Which department does the role belong to?',
-                    choices: departmentChoices
-                }
-            // roleData { title: "customer service", salary: "80000", department: :"Service" }
-            ]).then((roleData) => {
-                const query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)"
-
-                db.query(query, [roleData.title, roleData.salary, roleData.departmentId], (err, result) => {
-                    if (err) {
-                        throw err;
-                    }
-                    console.log(`Added ${roleData.title} to the database`)
-                    menu();
-                });
-            });
-        })
-        .catch(console.error);
-};
 
 // Add Employee
 // MySQL2 exposes a .promise() function on Connections, to "upgrade" an existing non-promise connection to use promise
@@ -185,6 +117,131 @@ const addEmployee = () => {
 };
 
 // Update Employee Role
+// employee first_name + last_name -> employee table
+// Employee role -> role table 
+const updateEmployeeRole = () => {
+    // retrieve information about employees and their current roles
+    db.promise().query("SELECT employee.id, employee.first_name, employee.last_name, title FROM employee LEFT JOIN role ON employee.role_id = role.id")
+        .then(([rows]) => {
+            // The result of the query is then mapped to create two arrays, updateEmployee and assignRole, that will be used to display choices to the user.
+            const updateEmployee = rows.map(row => ({
+                name: `${row.first_name} ${row.last_name}`,
+                value: row.id
+            }))
+            const assignRole = rows.map(row => ({
+                name: row.title,
+                value: row.id
+            }));
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'updateEmployee',
+                        message: "Which employee’s role do you want to update?",
+                        // all employee's full name should be prompted
+                        choices: updateEmployee
+                    },
+                    {
+                        type: 'list',
+                        name: 'assignRole',
+                        pageSize: 6,
+                        message: "Which role do you want to assign the selected employee?",
+                        choices: assignRole
+                    }
+        // an object UpdateEmployeeData that contains the user's selections
+        ]).then((UpdateEmployeeData) => {
+            // UpdateEmployeeData { updateEmployee: Jane Lee, assignRole: Technical Lead }
+            // 선택한 이름 first_name, last_name을 따로 받아서 각자 insert into해야하는데
+            // employee.id(number)로 받는데 이걸 어떻게 이름으로 치환하지?
+            // { updateEmployee: 4, assignRole: 3 }
+            // split은 스트링만 나눌 수 있음 
+            // 그렇지 위의 updateEmployee array에서 재사용하는게 맞지
+            // can get it from the updateEmployee array that you created earlier in the code by using the filter method:
+            const selectedEmployee = updateEmployee.filter(emp => emp.value === UpdateEmployeeData.updateEmployee);
+            const first_name = selectedEmployee[0].name.split(" ")[0];
+            const last_name = selectedEmployee[0].name.split(" ")[1];
+            
+            const query = `UPDATE employee SET first_name = (?), last_name = (?), role_id = (?) WHERE id = (?)`
+            db.query(query, [first_name, last_name, UpdateEmployeeData.assignRole, UpdateEmployeeData.updateEmployee], (err, result) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Updated employee's role`)
+                menu();
+            });
+        });
+    })
+    .catch(console.error);
+};
+
+const addRole = () => {
+    // Use a promise to execute a query to retrieve the list of departments
+    db.promise().query("SELECT id, department_name FROM department")
+        .then(([rows]) => {
+            // Use the results to populate the choices in the inquirer prompt
+            const departmentChoices = rows.map(row => ({
+                name: row.department_name,
+                value: row.id
+            }));
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'title',
+                    message: "What is the name of the role?"
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: "What is the salary of the role?"
+                },
+                {
+                    type: 'list',
+                    name: 'departmentId',
+                    message: 'Which department does the role belong to?',
+                    choices: departmentChoices
+                }
+            // roleData { title: "customer service", salary: "80000", department: :"Service" }
+            ]).then((roleData) => {
+                const query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)"
+
+                db.query(query, [roleData.title, roleData.salary, roleData.departmentId], (err, result) => {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log(`Added ${roleData.title} to the database`)
+                    menu();
+                });
+            });
+        })
+        .catch(console.error);
+};
+
+// Add Department
+const addDept = () => {
+    inquirer.
+       prompt([
+           {
+               type: 'input',
+               name: 'department',
+               message: "What is the name of the department?"
+           }
+     
+        // deptData { department: "service"}
+       ]).then((deptData) => {
+           const query = "INSERT INTO department(department_name) VALUES(?)"
+           // to execute the SQL query and insert the department name into the database.
+           // first parameter -> SQL query
+           // seconde parameter -> object that contains the department name
+           // third parameter -> callback function
+           db.query(query, deptData.department, (err, result) => {
+               if(err) {
+                   throw(err);
+                       } 
+               console.log(`Added ${deptData.department} to the database`)
+               menu();
+           }); 
+           })
+       };
 
 const viewAllEmployee = () => {
     const query = "SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id";
