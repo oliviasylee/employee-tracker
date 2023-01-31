@@ -40,22 +40,21 @@ const menu = () => {
                      }
 ]).then((data) => {
     if(data.startQuestions === 'View All Employee') {
-        viewAllEmployee();
-    } else if (data.startQuestions === 'Add Employee'){
-        addEmployee();
-    } else if (data.startQuestions === 'View All Roles') {
-        viewAllRoles();
-    } else if (data.startQuestions === 'Add Role') {
-        addRole();
-    } else if (data.startQuestions === 'View All Departments') {
-        viewAllDepts();
-    } else if (data.startQuestions === 'Add Department'){
-        addDept();
-    } else if (data.startQuestions === 'Quit'){
-        console.log('The application is now closed. Goodbye!')
-        // or db.end();
-        process.exit();
-    }} 
+            viewAllEmployee();
+        } else if (data.startQuestions === 'Add Employee'){
+            addEmployee();
+        } else if (data.startQuestions === 'View All Roles') {
+            viewAllRoles();
+        } else if (data.startQuestions === 'Add Role') {
+            addRole();
+        } else if (data.startQuestions === 'View All Departments') {
+            viewAllDepts();
+        } else if (data.startQuestions === 'Add Department'){
+            addDept();
+        } else if (data.startQuestions === 'Quit'){
+            console.log('The application is now closed. Goodbye!')
+            db.end();
+        }} 
 )};
 
 // Add Department
@@ -112,6 +111,7 @@ const addRole = () => {
                     message: 'Which department does the role belong to?',
                     choices: departmentChoices
                 }
+            // roleData { title: "customer service", salary: "80000", department: :"Service" }
             ]).then((roleData) => {
                 const query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)"
 
@@ -127,58 +127,62 @@ const addRole = () => {
         .catch(console.error);
 };
 
-// Add Role 
-// const addRole = () => {
-//     inquirer.
-//        prompt([
-//            {
-//                type: 'input',
-//                name: 'title',
-//                message: "What is the name of the role?"
-//            },
-//            {
-//                 type: 'input',
-//                 name: 'salary',
-//                 message: "What is the salary of the role?"
-//             },
-//             {
-//                 type: 'list',
-//                 name: 'departmentName',
-//                 message: 'Which department does the role belong to?',
-                // 새로 입력된 디파트먼트 테이블에서 모두 불러와야함. choices에 sql query가 들어갈 수 있나?
-                // 아 여기서 프로미스가 나와야하는구나 viewrole과 함께 해야하는 것 같은데 왜냐면 viewrole의 sql query가 필요하거든
-                // 이 프로미스의 목적이 뭐니? 사용자의 입력을 받아서 새로운 역할을 추가하는 것. 하지만 이것을 하는 동안 view role보는 것임? 
-//                 choices: [ ]
-//             }
-        // roleData { title: "customer service", salary: "80000", department: :"Service" }
-//        ]).then((roleData) => {
-//            const query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)"
-           
-//            db.query(query, [roleData.role, roleData.salary, roleData.departmentName], (err, result) => {
-//                if(err) {
-//                    throw(err);
-//                        } 
-//                console.log(`Added ${roleData.role} to the database`)
-//                menu();
-//            }); 
-//            })
-//        };
-
 // Add Employee
-// const addEmployee = () => {
-//     inquirer.prompt([
-//         {
-//             type: 'input',
-//             name: 'firstName',
-//             message: "What is this employees first name?"
-//         }
-//     ]).then(res => {
-//         const query = `INSERT INTO employee SET ?`
-//         db.query(query, {
-//             first_name: res.firstName
-//         })
-//     })
-// }
+// MySQL2 exposes a .promise() function on Connections, to "upgrade" an existing non-promise connection to use promise
+// needs promis here. I think I have to do it with viewrole because I need viewrole's sql query.
+// Not only viewRole table but also need viewAllEmployee table so I think I have get viewallemployee table.
+// Should I use this query with joining table(viewallemployee) and then I can update the employee. 그래야 직원을 업데이트 할 수 있는데 아래 쿼리에서 가져옴? view all employee의 테이블을 불러오는 것임
+// 그래서 그걸 불러와서 밑에 rolechoices에 넣고 map으로 찾아서 first_name, last_name, role, manager로 나눠서 seprate 다음에 insert함
+const addEmployee = () => {
+    db.promise().query("SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id")
+        .then(([rows]) => {
+            // Use the results to populate the choices in the inquirer prompt
+            const roleChoices = rows.map(row => ({
+                name: row.title,
+                value: row.id
+            }))
+            const managerChoices = rows.map(row => ({
+                name: `${row.first_name} ${row.last_name}`,
+                value: row.id
+            }));
+            managerChoices.unshift({ name: "None", value: null });
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'firstName',
+                        message: 'What is this employees first name?'
+                    },
+                    {
+                        type: 'input',
+                        name: 'lastName',
+                        message: 'What is this employees last name?'
+                    },
+                    {
+                        type: 'list',
+                        name: 'roleId',
+                        pageSize: 6,
+                        message: "What is the employee’s role?",
+                        choices: roleChoices
+                    },
+                    {
+                        type: 'list',
+                        name: 'managerId',
+                        message: "Who’s the employee’s manager?",
+                        choices: managerChoices
+                    }
+        ]).then((employeeData) => {
+            const query = `INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?, ?, ?, ?)`
+            db.query(query, [employeeData.firstName, employeeData.lastName, employeeData.roleId, employeeData.managerId], (err, result) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`)
+                menu();
+            });
+        });
+    })
+    .catch(console.error);
+};
 
 // Update Employee Role
 
