@@ -2,9 +2,9 @@ const mysql = require('mysql2')
 // Prints the results to the console in a tabular format
 const cTable = require('console.table');
 const inquirer = require('inquirer');
-const { default: Choices } = require('inquirer/lib/objects/choices');
 const figlet = require('figlet');
 
+// DB configuration info
 require('dotenv').config();
 
 const db = mysql.createConnection({
@@ -15,6 +15,7 @@ const db = mysql.createConnection({
     port: 3306
 });
 
+// Displays a welcome message in ASCII art
 figlet("Welcome ! \n Employee Tracker", function(err, data) {
     if (err) {
         console.log('Something went wrong...');
@@ -28,6 +29,7 @@ figlet("Welcome ! \n Employee Tracker", function(err, data) {
     });
 });
 
+// Provides the main menu options using inquirer
 const menu = () => {
         return inquirer
                 .prompt([
@@ -65,6 +67,7 @@ const menu = () => {
 // Not only viewRole table but also need viewAllEmployee table so I think I have get viewallemployee table.
 // Should I use this query with joining table(viewallemployee) and then I can update the employee. 그래야 직원을 업데이트 할 수 있는데 아래 쿼리에서 가져옴? view all employee의 테이블을 불러오는 것임
 // 그래서 그걸 불러와서 밑에 rolechoices에 넣고 map으로 찾아서 first_name, last_name, role, manager로 나눠서 seprate 다음에 insert함
+// Adds a new employee to the database by prompting the user for first name, last name, role, and manager information and then inserting the data into the database
 const addEmployee = () => {
     db.promise().query("SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id")
         .then(([rows]) => {
@@ -116,14 +119,12 @@ const addEmployee = () => {
     .catch(console.error);
 };
 
-// Update Employee Role
-// employee first_name + last_name -> employee table
-// Employee role -> role table 
+// retrieving information about employees and their roles from the database, then prompting the user to select an employee and a role to assign, updating the selected employee's information in the database
 const updateEmployeeRole = () => {
     // retrieve information about employees and their current roles
     db.promise().query("SELECT employee.id, employee.first_name, employee.last_name, title FROM employee LEFT JOIN role ON employee.role_id = role.id")
         .then(([rows]) => {
-            // The result of the query is then mapped to create two arrays, updateEmployee and assignRole, that will be used to display choices to the user.
+            // The result of the query is then mapped to create two arrays, updateEmployee and assignRole, that will be used to display choices to the user
             const updateEmployee = rows.map(row => ({
                 name: `${row.first_name} ${row.last_name}`,
                 value: row.id
@@ -153,7 +154,7 @@ const updateEmployeeRole = () => {
             // 선택한 이름 first_name, last_name을 따로 받아서 각자 insert into해야하는데
             // employee.id(number)로 받는데 이걸 어떻게 이름으로 치환하지?
             // { updateEmployee: 4, assignRole: 3 }
-            // split은 스트링만 나눌 수 있음 
+            // split은 string만 나눌 수 있음 
             // 그렇지 위의 updateEmployee array에서 재사용하는게 맞지
             // can get it from the updateEmployee array that you created earlier in the code by using the filter method:
             const selectedEmployee = updateEmployee.filter(emp => emp.value === UpdateEmployeeData.updateEmployee);
@@ -173,6 +174,7 @@ const updateEmployeeRole = () => {
     .catch(console.error);
 };
 
+// Adds a new role to the database by prompting the user for role, salary, and department and then inserting the data into the database
 const addRole = () => {
     // Use a promise to execute a query to retrieve the list of departments
     db.promise().query("SELECT id, department_name FROM department")
@@ -216,7 +218,7 @@ const addRole = () => {
         .catch(console.error);
 };
 
-// Add Department
+// Adds a new department to the database
 const addDept = () => {
     inquirer.
        prompt([
@@ -243,6 +245,7 @@ const addDept = () => {
            })
        };
 
+// Queries the database to retrieve information on all employees and displays it in a table using console.table
 const viewAllEmployee = () => {
     const query = "SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id";
     db.query(query, (err, rows) => {
@@ -252,8 +255,9 @@ const viewAllEmployee = () => {
     });
 }
 
+// Queries the database to retrieve information on all roles
 const viewAllRoles = () => {
-    const query = 'SELECT department.id, title, department_name AS department, salary FROM role LEFT JOIN department on role.department_id = department.id';
+    const query = 'SELECT role.id, title, department_name AS department, salary FROM role LEFT JOIN department on role.department_id = department.id';
     db.query(query, (err, rows) => {
         if (err) throw err;
         console.table(rows);
@@ -261,6 +265,7 @@ const viewAllRoles = () => {
     });
 }
 
+// Queries the database to retrieve information on all departments
 const viewAllDepts = () => {
     const query = 'SELECT id, department_name AS name FROM department ORDER BY name ASC';
     db.query(query, (err, rows) => {
