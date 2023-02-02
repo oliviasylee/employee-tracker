@@ -6,7 +6,6 @@
 - [Description](#Description)
 - [Installation](#Installation)
 - [Usage](#Usage)
-- [Technoloy Used](#Technoloy-Used)
 - [Questions](#Questions)
 ## Installation
 1. Clone this repository.
@@ -33,8 +32,10 @@ node index.js
 ## Usage
 
 ### Video Walkthrough
+Here is a full movie showing how the application works. [Click here](https://drive.google.com/file/d/1lrOQnKvVpBigbDkkzEpfPUTJsnla88RQ/view) <br>
+[![preview](Images/Screenshot-employee-tracker-2.png)](https://drive.google.com/file/d/1lrOQnKvVpBigbDkkzEpfPUTJsnla88RQ/view)
 ### Application User Interface
-## Technoloy Used
+[![Employee-tracker-screenshot](Images/Screenshot-employee-tracker.png)](https://github.com/oliviasylee/employee-tracker)
 
 ## Questions
 If you have any questions about this projects, please contact me at oliviasylee@Gmail.com. You can view more of my projects at https://github.com/oliviasylee.
