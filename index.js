@@ -38,7 +38,14 @@ const menu = () => {
                          name: 'startQuestions',
                          pageSize: 6,
                          message: "What would you like to do?",
-                         choices: ['View All Employee', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit']
+                         choices: [ 'View All Employee', 
+                                    'Add Employee', 
+                                    'Update Employee Role', 
+                                    'View All Roles', 
+                                    'Add Role', 
+                                    'View All Departments', 
+                                    'Add Department', 
+                                    'Quit']
                      }
 ]).then((data) => {
     if(data.startQuestions === 'View All Employee') {
@@ -61,25 +68,21 @@ const menu = () => {
         }} 
 )};
 
-// Add Employee
-// MySQL2 exposes a .promise() function on Connections, to "upgrade" an existing non-promise connection to use promise
-// needs promis here. I think I have to do it with viewrole because I need viewrole's sql query.
-// Not only viewRole table but also need viewAllEmployee table so I think I have get viewallemployee table.
-// Should I use this query with joining table(viewallemployee) and then I can update the employee. 그래야 직원을 업데이트 할 수 있는데 아래 쿼리에서 가져옴? view all employee의 테이블을 불러오는 것임
-// 그래서 그걸 불러와서 밑에 rolechoices에 넣고 map으로 찾아서 first_name, last_name, role, manager로 나눠서 seprate 다음에 insert함
+
 // Adds a new employee to the database by prompting the user for first name, last name, role, and manager information and then inserting the data into the database
 const addEmployee = () => {
-    db.promise().query("SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(mng.first_name, ' ', mng.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee mng ON employee.manager_id = mng.id")
-        .then(([rows]) => {
-            // Use the results to populate the choices in the inquirer prompt
-            const roleChoices = rows.map(row => ({
-                name: row.title,
-                value: row.id
-            }))
-            const managerChoices = rows.map(row => ({
-                name: `${row.first_name} ${row.last_name}`,
-                value: row.id
-            }));
+    db.promise().query("SELECT role.id, role.title, employee.first_name, employee.last_name FROM role LEFT JOIN employee ON role.id = employee.role_id")
+    .then(([rows]) => {
+        // Use the results to populate the choices in the inquirer prompt
+        const roleChoices = rows.map(row => ({
+            name: row.title,
+            value: row.id
+        }))
+        const managerChoices = rows.map(row => ({
+            name: `${row.first_name} ${row.last_name}`,
+            value: row.id
+        }));
+            // Adds 'None' to the beginning of managerChoices array
             managerChoices.unshift({ name: "None", value: null });
                 inquirer.prompt([
                     {
@@ -95,13 +98,13 @@ const addEmployee = () => {
                     {
                         type: 'list',
                         name: 'roleId',
-                        pageSize: 6,
                         message: "What is the employee’s role?",
                         choices: roleChoices
                     },
                     {
                         type: 'list',
                         name: 'managerId',
+                        pageSize: 6,
                         message: "Who’s the employee’s manager?",
                         choices: managerChoices
                     }
@@ -138,7 +141,6 @@ const updateEmployeeRole = () => {
                         type: 'list',
                         name: 'updateEmployee',
                         message: "Which employee’s role do you want to update?",
-                        // all employee's full name should be prompted
                         choices: updateEmployee
                     },
                     {
@@ -151,12 +153,9 @@ const updateEmployeeRole = () => {
         // an object UpdateEmployeeData that contains the user's selections
         ]).then((UpdateEmployeeData) => {
             // UpdateEmployeeData { updateEmployee: Jane Lee, assignRole: Technical Lead }
-            // 선택한 이름 first_name, last_name을 따로 받아서 각자 insert into해야하는데
-            // employee.id(number)로 받는데 이걸 어떻게 이름으로 치환하지?
             // { updateEmployee: 4, assignRole: 3 }
-            // split은 string만 나눌 수 있음 
-            // 그렇지 위의 updateEmployee array에서 재사용하는게 맞지
-            // can get it from the updateEmployee array that you created earlier in the code by using the filter method:
+            // split - divides a String
+            // can get it from the updateEmployee array that created earlier in the code by using the filter method
             const selectedEmployee = updateEmployee.filter(emp => emp.value === UpdateEmployeeData.updateEmployee);
             const first_name = selectedEmployee[0].name.split(" ")[0];
             const last_name = selectedEmployee[0].name.split(" ")[1];
